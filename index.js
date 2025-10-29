@@ -19,9 +19,28 @@ app.get('/', function (req, res) {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// your first API endpoint...
-app.get('/api/hello', function (req, res) {
-  res.json({ greeting: 'hello API' });
+
+// endpoint principal del microservicio
+app.get('/api/whoami', (req, res) => {
+  // IP: preferir X-Forwarded-For (si está detrás de proxy) o req.ip
+  const forwarded = req.headers['x-forwarded-for'];
+  const ipaddress = forwarded ? forwarded.split(',')[0].trim() : (req.ip || req.connection.remoteAddress);
+
+  // idioma: tomar del header accept-language (primer valor)
+  const acceptLanguage = req.headers['accept-language'] || '';
+  const language = acceptLanguage.split(',')[0];
+
+  // software: user-agent completo o simplificado (texto dentro de paréntesis)
+  const userAgent = req.headers['user-agent'] || '';
+  // intentamos extraer la parte "entre paréntesis" (si existe) para que concuerde con el ejemplo FCC
+  const match = userAgent.match(/\(([^)]+)\)/);
+  const software = match ? match[1] : userAgent;
+
+  res.json({
+    "ipaddress": ipaddress,
+    "language": language,
+    "software": software
+  });
 });
 
 // listen for requests :)
